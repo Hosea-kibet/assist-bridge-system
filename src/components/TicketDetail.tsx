@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,7 +29,7 @@ interface TicketDetailProps {
 const TicketDetail = ({ ticket, onClose }: TicketDetailProps) => {
   const { toast } = useToast();
   const [comment, setComment] = useState("");
-  const [status, setStatus] = useState(ticket.status);
+  const [status, setStatus] = useState<"open" | "in-progress" | "resolved" | "closed">(ticket.status);
 
   const getStatusColor = (status: string) => {
     switch (status) {
