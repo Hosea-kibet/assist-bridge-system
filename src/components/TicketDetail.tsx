@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -84,6 +85,12 @@ const TicketDetail = ({ ticket, onClose }: TicketDetailProps) => {
     }
   };
 
+  const handleStatusChange = (value: string) => {
+    if (value === "open" || value === "in-progress" || value === "resolved" || value === "closed") {
+      setStatus(value);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-md">
@@ -157,7 +164,7 @@ const TicketDetail = ({ ticket, onClose }: TicketDetailProps) => {
           <div>
             <h3 className="font-medium text-gray-900 mb-2">Update Status</h3>
             <div className="flex items-center space-x-3">
-              <Select value={status} onValueChange={setStatus}>
+              <Select value={status} onValueChange={handleStatusChange}>
                 <SelectTrigger className="w-48">
                   <SelectValue />
                 </SelectTrigger>
