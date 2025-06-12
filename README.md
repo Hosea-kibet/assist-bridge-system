@@ -1,73 +1,210 @@
-# Welcome to your Lovable project
 
-## Project info
+# TicketFlow - Multi-Channel Ticketing System
 
-**URL**: https://lovable.dev/projects/be453134-618a-431a-b3b5-7fb14e3bc2c0
+A modern, dockerized ticketing system built with Next.js frontend and Go backend, designed to handle tickets from multiple sources including WhatsApp, email, phone calls, and web submissions.
 
-## How can I edit this code?
+## 🚀 Features
 
-There are several ways of editing your application.
+### Frontend (Next.js)
+- **Modern UI**: Beautiful, responsive interface with Tailwind CSS
+- **Real-time Updates**: Live ticket status updates
+- **Multi-channel Support**: Handle tickets from various sources
+- **Advanced Filtering**: Search and filter tickets by status, priority, source
+- **Responsive Design**: Works seamlessly on desktop and mobile
+- **Toast Notifications**: User-friendly feedback system
 
-**Use Lovable**
+### Backend (Go)
+- **RESTful API**: Clean, well-documented API endpoints
+- **Database**: PostgreSQL with GORM ORM
+- **Caching**: Redis for performance optimization
+- **Authentication**: JWT-based authentication
+- **Webhooks**: Support for external integrations
+- **Email Integration**: SMTP support for notifications
+- **WhatsApp Integration**: Ready for WhatsApp Business API
+- **Logging**: Structured logging with logrus
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/be453134-618a-431a-b3b5-7fb14e3bc2c0) and start prompting.
+### Infrastructure
+- **Docker**: Fully containerized application
+- **Docker Compose**: Easy multi-service deployment
+- **Nginx**: Reverse proxy and load balancing
+- **Health Checks**: Built-in health monitoring
+- **Scalable**: Ready for horizontal scaling
 
-Changes made via Lovable will be committed automatically to this repo.
+## 📋 Ticket Sources
 
-**Use your preferred IDE**
+1. **Web Portal**: Direct ticket creation through the web interface
+2. **Email**: Automatic ticket creation from incoming emails
+3. **WhatsApp**: Integration with WhatsApp Business API
+4. **Phone Calls**: Manual ticket creation for phone support
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 🛠 Tech Stack
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Frontend
+- Next.js 14
+- TypeScript
+- Tailwind CSS
+- Shadcn/ui Components
+- Lucide Icons
+- React Query
 
-Follow these steps:
+### Backend
+- Go 1.21
+- Gin Web Framework
+- GORM (PostgreSQL)
+- Redis
+- JWT Authentication
+- SendGrid (Email)
+- WebSocket (Real-time)
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Infrastructure
+- Docker & Docker Compose
+- PostgreSQL 15
+- Redis 7
+- Nginx
+- SSL/TLS Support
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## 🚀 Quick Start
 
-# Step 3: Install the necessary dependencies.
-npm i
+### Prerequisites
+- Docker and Docker Compose
+- Git
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+### Development Setup
+
+1. **Clone the repository**
+```bash
+git clone <repository-url>
+cd ticketing-system
 ```
 
-**Edit a file directly in GitHub**
+2. **Environment Configuration**
+Create a `.env` file in the backend directory:
+```env
+DATABASE_URL=postgres://ticketing_user:secure_password@localhost:5432/ticketing?sslmode=disable
+REDIS_URL=redis://localhost:6379
+JWT_SECRET=your-super-secret-jwt-key
+WHATSAPP_TOKEN=your-whatsapp-token
+EMAIL_SMTP_HOST=smtp.gmail.com
+EMAIL_SMTP_PORT=587
+EMAIL_USERNAME=your-email@gmail.com
+EMAIL_PASSWORD=your-app-password
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+3. **Start the application**
+```bash
+docker-compose up -d
+```
 
-**Use GitHub Codespaces**
+4. **Access the application**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8080
+- API Documentation: http://localhost:8080/docs
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Production Deployment
 
-## What technologies are used for this project?
+1. **Update environment variables** for production
+2. **Configure SSL certificates** in nginx/ssl/
+3. **Run with production compose file**
+```bash
+docker-compose -f docker-compose.prod.yml up -d
+```
 
-This project is built with:
+## 📁 Project Structure
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```
+ticketing-system/
+├── src/                          # Next.js frontend
+│   ├── components/              # React components
+│   ├── pages/                   # Next.js pages
+│   └── hooks/                   # Custom hooks
+├── backend/                     # Go backend
+│   ├── cmd/api/                # Application entry point
+│   ├── internal/               # Internal packages
+│   │   ├── config/            # Configuration
+│   │   ├── database/          # Database connection
+│   │   ├── handlers/          # HTTP handlers
+│   │   ├── middleware/        # HTTP middleware
+│   │   ├── models/            # Data models
+│   │   └── services/          # Business logic
+│   └── migrations/            # Database migrations
+├── nginx/                      # Nginx configuration
+├── docker-compose.yml         # Development compose
+└── docker-compose.prod.yml   # Production compose
+```
 
-## How can I deploy this project?
+## 🔧 API Endpoints
 
-Simply open [Lovable](https://lovable.dev/projects/be453134-618a-431a-b3b5-7fb14e3bc2c0) and click on Share -> Publish.
+### Tickets
+- `GET /api/v1/tickets` - List all tickets
+- `POST /api/v1/tickets` - Create new ticket
+- `GET /api/v1/tickets/:id` - Get specific ticket
+- `PUT /api/v1/tickets/:id` - Update ticket
+- `DELETE /api/v1/tickets/:id` - Delete ticket
+- `POST /api/v1/tickets/:id/comments` - Add comment
 
-## Can I connect a custom domain to my Lovable project?
+### Webhooks
+- `POST /api/v1/webhooks/whatsapp` - WhatsApp webhook
+- `POST /api/v1/webhooks/email` - Email webhook
+- `POST /api/v1/webhooks/call` - Call webhook
 
-Yes, you can!
+### Statistics
+- `GET /api/v1/stats` - Get ticket statistics
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 🔌 External Integrations
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+### WhatsApp Business API
+Configure webhook URL: `https://yourdomain.com/api/v1/webhooks/whatsapp`
+
+### Email Integration
+Configure SMTP settings and webhook: `https://yourdomain.com/api/v1/webhooks/email`
+
+### Phone Integration
+Manual ticket creation through API or web interface
+
+## 📊 Monitoring & Logging
+
+- **Health Checks**: `/health` endpoint for monitoring
+- **Structured Logging**: JSON logs for easy parsing
+- **Metrics**: Ready for Prometheus integration
+- **Alerts**: Configurable alert system
+
+## 🔐 Security Features
+
+- JWT Authentication
+- CORS Configuration
+- Rate Limiting
+- Input Validation
+- SQL Injection Prevention
+- XSS Protection
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## 📝 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🆘 Support
+
+For support and questions:
+- Create an issue in the repository
+- Check the documentation
+- Review the API endpoints
+
+## 🚀 Roadmap
+
+- [ ] Mobile application
+- [ ] Advanced analytics dashboard
+- [ ] AI-powered ticket categorization
+- [ ] Video call integration
+- [ ] Advanced workflow automation
+- [ ] Multi-language support
+
+---
+
+Built with ❤️ using Next.js and Go
