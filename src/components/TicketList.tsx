@@ -5,20 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Clock, User, MessageSquare, Mail, Phone, Globe, Eye } from "lucide-react";
 import TicketDetail from "./TicketDetail";
-
-interface Ticket {
-  id: string;
-  title: string;
-  description: string;
-  status: "open" | "in-progress" | "resolved" | "closed";
-  priority: "low" | "medium" | "high" | "critical";
-  customer: string;
-  customerEmail: string;
-  source: "whatsapp" | "email" | "phone" | "web";
-  assignedTo?: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import { useTickets, type Ticket } from "@/hooks/useTickets";
 
 interface TicketListProps {
   searchTerm: string;
@@ -26,66 +13,13 @@ interface TicketListProps {
 
 const TicketList = ({ searchTerm }: TicketListProps) => {
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
-
-  // Sample data - in real app this would come from API
-  const tickets: Ticket[] = [
-    {
-      id: "T-001",
-      title: "Login issues with mobile app",
-      description: "User unable to login using mobile application after recent update",
-      status: "open",
-      priority: "high",
-      customer: "John Doe",
-      customerEmail: "john.doe@email.com",
-      source: "email",
-      createdAt: "2024-01-15T10:30:00Z",
-      updatedAt: "2024-01-15T10:30:00Z"
-    },
-    {
-      id: "T-002",
-      title: "Payment processing error",
-      description: "Customer experiencing payment failures during checkout",
-      status: "in-progress",
-      priority: "critical",
-      customer: "Jane Smith",
-      customerEmail: "jane.smith@email.com",
-      source: "whatsapp",
-      assignedTo: "Agent Mike",
-      createdAt: "2024-01-15T09:15:00Z",
-      updatedAt: "2024-01-15T11:20:00Z"
-    },
-    {
-      id: "T-003",
-      title: "Feature request: Dark mode",
-      description: "Customer requesting dark mode option in the application",
-      status: "open",
-      priority: "low",
-      customer: "Bob Wilson",
-      customerEmail: "bob.wilson@email.com",
-      source: "web",
-      createdAt: "2024-01-14T16:45:00Z",
-      updatedAt: "2024-01-14T16:45:00Z"
-    },
-    {
-      id: "T-004",
-      title: "Account verification issues",
-      description: "New user unable to complete account verification process",
-      status: "resolved",
-      priority: "medium",
-      customer: "Alice Johnson",
-      customerEmail: "alice.johnson@email.com",
-      source: "phone",
-      assignedTo: "Agent Sarah",
-      createdAt: "2024-01-14T14:20:00Z",
-      updatedAt: "2024-01-15T09:30:00Z"
-    }
-  ];
+  const { tickets, loading } = useTickets();
 
   const filteredTickets = tickets.filter(ticket =>
     ticket.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
     ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    ticket.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    ticket.description.toLowerCase().includes(searchTerm.toLowerCase())
+    ticket.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (ticket.description && ticket.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const getStatusColor = (status: string) => {
@@ -127,6 +61,25 @@ const TicketList = ({ searchTerm }: TicketListProps) => {
     });
   };
 
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        {[...Array(3)].map((_, i) => (
+          <Card key={i} className="bg-white/60 backdrop-blur-sm border-white/20">
+            <CardContent className="p-6">
+              <div className="animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+                <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="space-y-4">
@@ -137,7 +90,7 @@ const TicketList = ({ searchTerm }: TicketListProps) => {
                 <div className="flex-1">
                   <div className="flex items-center space-x-3 mb-2">
                     <span className="font-mono text-sm font-medium text-gray-600">
-                      {ticket.id}
+                      {ticket.id.slice(0, 8)}
                     </span>
                     <Badge className={getStatusColor(ticket.status)}>
                       {ticket.status.replace("-", " ")}
@@ -162,16 +115,16 @@ const TicketList = ({ searchTerm }: TicketListProps) => {
                   <div className="flex items-center space-x-6 text-sm text-gray-500">
                     <div className="flex items-center space-x-1">
                       <User className="w-4 h-4" />
-                      <span>{ticket.customer}</span>
+                      <span>{ticket.customer_name}</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <Clock className="w-4 h-4" />
-                      <span>{formatDate(ticket.createdAt)}</span>
+                      <span>{formatDate(ticket.created_at)}</span>
                     </div>
-                    {ticket.assignedTo && (
+                    {ticket.assigned_to && (
                       <div className="flex items-center space-x-1">
                         <span>Assigned to:</span>
-                        <span className="font-medium">{ticket.assignedTo}</span>
+                        <span className="font-medium">{ticket.assigned_to}</span>
                       </div>
                     )}
                   </div>
@@ -193,7 +146,7 @@ const TicketList = ({ searchTerm }: TicketListProps) => {
           </Card>
         ))}
         
-        {filteredTickets.length === 0 && (
+        {filteredTickets.length === 0 && !loading && (
           <Card className="bg-white/60 backdrop-blur-sm border-white/20">
             <CardContent className="p-12 text-center">
               <p className="text-gray-500">No tickets found matching your search.</p>

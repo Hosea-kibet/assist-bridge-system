@@ -7,37 +7,51 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { X, Send } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useTickets } from "@/hooks/useTickets";
 
 interface TicketFormProps {
   onClose: () => void;
 }
 
 const TicketForm = ({ onClose }: TicketFormProps) => {
-  const { toast } = useToast();
+  const { createTicket } = useTickets();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     priority: "",
-    customerName: "",
-    customerEmail: "",
-    source: "web"
+    customer_name: "",
+    customer_email: "",
+    source: "web" as "whatsapp" | "email" | "phone" | "web"
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Generate a ticket ID
-    const ticketId = `T-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+    if (!formData.priority) {
+      return;
+    }
+
+    setIsSubmitting(true);
     
-    console.log("Creating ticket:", { ...formData, id: ticketId });
-    
-    toast({
-      title: "Ticket Created Successfully",
-      description: `Ticket ${ticketId} has been created and assigned to the support team.`,
-    });
-    
-    onClose();
+    try {
+      const ticketData = {
+        title: formData.title,
+        description: formData.description || null,
+        priority: formData.priority as "low" | "medium" | "high" | "critical",
+        customer_name: formData.customer_name,
+        customer_email: formData.customer_email || null,
+        source: formData.source,
+        status: "open" as const
+      };
+
+      await createTicket(ticketData);
+      onClose();
+    } catch (error) {
+      console.error("Failed to create ticket:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -58,25 +72,24 @@ const TicketForm = ({ onClose }: TicketFormProps) => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="customerName">Customer Name</Label>
+                <Label htmlFor="customer_name">Customer Name</Label>
                 <Input
-                  id="customerName"
-                  value={formData.customerName}
-                  onChange={(e) => handleInputChange("customerName", e.target.value)}
+                  id="customer_name"
+                  value={formData.customer_name}
+                  onChange={(e) => handleInputChange("customer_name", e.target.value)}
                   placeholder="Enter customer name"
                   required
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="customerEmail">Customer Email</Label>
+                <Label htmlFor="customer_email">Customer Email</Label>
                 <Input
-                  id="customerEmail"
+                  id="customer_email"
                   type="email"
-                  value={formData.customerEmail}
-                  onChange={(e) => handleInputChange("customerEmail", e.target.value)}
+                  value={formData.customer_email}
+                  onChange={(e) => handleInputChange("customer_email", e.target.value)}
                   placeholder="Enter customer email"
-                  required
                 />
               </div>
             </div>
@@ -100,7 +113,6 @@ const TicketForm = ({ onClose }: TicketFormProps) => {
                 onChange={(e) => handleInputChange("description", e.target.value)}
                 placeholder="Provide detailed information about the issue"
                 rows={4}
-                required
               />
             </div>
 
@@ -145,10 +157,11 @@ const TicketForm = ({ onClose }: TicketFormProps) => {
               </Button>
               <Button 
                 type="submit" 
+                disabled={isSubmitting}
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
               >
                 <Send className="w-4 h-4 mr-2" />
-                Create Ticket
+                {isSubmitting ? "Creating..." : "Create Ticket"}
               </Button>
             </div>
           </form>

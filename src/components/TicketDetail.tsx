@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,21 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { X, Clock, User, MessageSquare, Mail, Phone, Globe, Send } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-
-interface Ticket {
-  id: string;
-  title: string;
-  description: string;
-  status: "open" | "in-progress" | "resolved" | "closed";
-  priority: "low" | "medium" | "high" | "critical";
-  customer: string;
-  customerEmail: string;
-  source: "whatsapp" | "email" | "phone" | "web";
-  assignedTo?: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import { useTickets, type Ticket } from "@/hooks/useTickets";
+import { useTicketComments } from "@/hooks/useTicketComments";
 
 interface TicketDetailProps {
   ticket: Ticket;
@@ -28,9 +14,10 @@ interface TicketDetailProps {
 }
 
 const TicketDetail = ({ ticket, onClose }: TicketDetailProps) => {
-  const { toast } = useToast();
   const [comment, setComment] = useState("");
   const [status, setStatus] = useState<"open" | "in-progress" | "resolved" | "closed">(ticket.status);
+  const { updateTicket } = useTickets();
+  const { comments, addComment, loading: commentsLoading } = useTicketComments(ticket.id);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -66,22 +53,24 @@ const TicketDetail = ({ ticket, onClose }: TicketDetailProps) => {
     return new Date(dateString).toLocaleString();
   };
 
-  const handleStatusUpdate = () => {
-    console.log("Updating ticket status:", { ticketId: ticket.id, newStatus: status });
-    toast({
-      title: "Status Updated",
-      description: `Ticket ${ticket.id} status changed to ${status.replace("-", " ")}.`,
-    });
+  const handleStatusUpdate = async () => {
+    try {
+      await updateTicket(ticket.id, { status });
+      console.log("Updating ticket status:", { ticketId: ticket.id, newStatus: status });
+    } catch (error) {
+      console.error("Failed to update ticket status:", error);
+    }
   };
 
-  const handleAddComment = () => {
+  const handleAddComment = async () => {
     if (comment.trim()) {
-      console.log("Adding comment:", { ticketId: ticket.id, comment });
-      toast({
-        title: "Comment Added",
-        description: "Your comment has been added to the ticket.",
-      });
-      setComment("");
+      try {
+        await addComment(comment.trim());
+        console.log("Adding comment:", { ticketId: ticket.id, comment });
+        setComment("");
+      } catch (error) {
+        console.error("Failed to add comment:", error);
+      }
     }
   };
 
@@ -97,7 +86,7 @@ const TicketDetail = ({ ticket, onClose }: TicketDetailProps) => {
         <CardHeader className="flex flex-row items-start justify-between">
           <div>
             <div className="flex items-center space-x-3 mb-2">
-              <CardTitle className="text-xl font-semibold">{ticket.id}</CardTitle>
+              <CardTitle className="text-xl font-semibold">{ticket.id.slice(0, 8)}</CardTitle>
               <Badge className={getStatusColor(status)}>
                 {status.replace("-", " ")}
               </Badge>
@@ -124,12 +113,14 @@ const TicketDetail = ({ ticket, onClose }: TicketDetailProps) => {
               <div className="space-y-2 text-sm">
                 <div className="flex items-center space-x-2">
                   <User className="w-4 h-4 text-gray-400" />
-                  <span>{ticket.customer}</span>
+                  <span>{ticket.customer_name}</span>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Mail className="w-4 h-4 text-gray-400" />
-                  <span>{ticket.customerEmail}</span>
-                </div>
+                {ticket.customer_email && (
+                  <div className="flex items-center space-x-2">
+                    <Mail className="w-4 h-4 text-gray-400" />
+                    <span>{ticket.customer_email}</span>
+                  </div>
+                )}
               </div>
             </div>
             
@@ -138,16 +129,16 @@ const TicketDetail = ({ ticket, onClose }: TicketDetailProps) => {
               <div className="space-y-2 text-sm">
                 <div className="flex items-center space-x-2">
                   <Clock className="w-4 h-4 text-gray-400" />
-                  <span>Created: {formatDate(ticket.createdAt)}</span>
+                  <span>Created: {formatDate(ticket.created_at)}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Clock className="w-4 h-4 text-gray-400" />
-                  <span>Updated: {formatDate(ticket.updatedAt)}</span>
+                  <span>Updated: {formatDate(ticket.updated_at)}</span>
                 </div>
-                {ticket.assignedTo && (
+                {ticket.assigned_to && (
                   <div className="flex items-center space-x-2">
                     <User className="w-4 h-4 text-gray-400" />
-                    <span>Assigned to: {ticket.assignedTo}</span>
+                    <span>Assigned to: {ticket.assigned_to}</span>
                   </div>
                 )}
               </div>
@@ -198,26 +189,37 @@ const TicketDetail = ({ ticket, onClose }: TicketDetailProps) => {
             </div>
           </div>
 
-          {/* Sample Comments/History */}
+          {/* Comments History */}
           <div>
-            <h3 className="font-medium text-gray-900 mb-2">Ticket History</h3>
+            <h3 className="font-medium text-gray-900 mb-2">Comments & History</h3>
             <div className="space-y-3">
               <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">
                 <div className="flex justify-between items-start mb-2">
                   <span className="font-medium text-blue-900">System</span>
-                  <span className="text-sm text-blue-700">{formatDate(ticket.createdAt)}</span>
+                  <span className="text-sm text-blue-700">{formatDate(ticket.created_at)}</span>
                 </div>
-                <p className="text-blue-800">Ticket created automatically from {ticket.source}</p>
+                <p className="text-blue-800">Ticket created from {ticket.source}</p>
               </div>
               
-              {ticket.assignedTo && (
-                <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-400">
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="font-medium text-green-900">System</span>
-                    <span className="text-sm text-green-700">{formatDate(ticket.updatedAt)}</span>
+              {commentsLoading ? (
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                   </div>
-                  <p className="text-green-800">Ticket assigned to {ticket.assignedTo}</p>
                 </div>
+              ) : (
+                comments.map((comment) => (
+                  <div key={comment.id} className="bg-gray-50 p-4 rounded-lg border-l-4 border-gray-400">
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="font-medium text-gray-900">
+                        {comment.profiles?.full_name || comment.profiles?.email || 'User'}
+                      </span>
+                      <span className="text-sm text-gray-700">{formatDate(comment.created_at)}</span>
+                    </div>
+                    <p className="text-gray-800">{comment.content}</p>
+                  </div>
+                ))
               )}
             </div>
           </div>
