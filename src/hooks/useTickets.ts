@@ -34,7 +34,15 @@ export const useTickets = () => {
 
       if (error) throw error;
 
-      setTickets(data || []);
+      // Type the data properly to match our Ticket interface
+      const typedTickets: Ticket[] = (data || []).map(ticket => ({
+        ...ticket,
+        status: ticket.status as "open" | "in-progress" | "resolved" | "closed",
+        priority: ticket.priority as "low" | "medium" | "high" | "critical",
+        source: ticket.source as "whatsapp" | "email" | "phone" | "web"
+      }));
+
+      setTickets(typedTickets);
     } catch (error) {
       console.error('Error fetching tickets:', error);
       toast({
@@ -57,7 +65,7 @@ export const useTickets = () => {
 
       if (error) throw error;
 
-      await fetchTickets(); // Refresh tickets list
+      await fetchTickets();
       toast({
         title: "Success",
         description: `Ticket ${data.id} created successfully`,
@@ -84,7 +92,7 @@ export const useTickets = () => {
 
       if (error) throw error;
 
-      await fetchTickets(); // Refresh tickets list
+      await fetchTickets();
       toast({
         title: "Success",
         description: "Ticket updated successfully",

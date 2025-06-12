@@ -1,47 +1,67 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Clock, CheckCircle, AlertCircle, Users } from "lucide-react";
+import { useTicketAnalytics } from "@/hooks/useTicketAnalytics";
 
 const TicketStats = () => {
-  const stats = [
+  const { stats, loading } = useTicketAnalytics();
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {[...Array(4)].map((_, i) => (
+          <Card key={i} className="bg-white/60 backdrop-blur-sm border-white/20">
+            <CardContent className="p-6">
+              <div className="animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+                <div className="h-8 bg-gray-200 rounded w-1/3 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  const statsData = [
     {
       title: "Open Tickets",
-      value: "24",
-      change: "+2 from yesterday",
+      value: stats.open.toString(),
+      change: `${stats.total} total tickets`,
       icon: AlertCircle,
       color: "text-orange-600",
       bgColor: "bg-orange-100"
     },
     {
       title: "In Progress",
-      value: "12",
-      change: "+5 from yesterday",
+      value: stats.inProgress.toString(),
+      change: `${stats.high + stats.critical} high priority`,
       icon: Clock,
       color: "text-blue-600",
       bgColor: "bg-blue-100"
     },
     {
       title: "Resolved Today",
-      value: "8",
-      change: "+3 from yesterday",
+      value: stats.resolved.toString(),
+      change: `${stats.avgResolutionTime} days avg`,
       icon: CheckCircle,
       color: "text-green-600",
       bgColor: "bg-green-100"
     },
     {
-      title: "Active Agents",
-      value: "6",
-      change: "2 available",
+      title: "Critical Priority",
+      value: stats.critical.toString(),
+      change: `${stats.high} high priority`,
       icon: Users,
-      color: "text-purple-600",
-      bgColor: "bg-purple-100"
+      color: "text-red-600",
+      bgColor: "bg-red-100"
     }
   ];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      {stats.map((stat, index) => (
+      {statsData.map((stat, index) => (
         <Card key={index} className="bg-white/60 backdrop-blur-sm border-white/20 hover:bg-white/80 transition-all duration-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">

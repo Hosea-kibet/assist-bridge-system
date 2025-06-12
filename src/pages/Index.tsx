@@ -2,20 +2,20 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, BarChart3 } from "lucide-react";
 import TicketStats from "@/components/TicketStats";
 import TicketList from "@/components/TicketList";
 import TicketForm from "@/components/TicketForm";
+import NotificationCenter from "@/components/NotificationCenter";
 import Header from "@/components/Header";
 import { useAuth } from "@/contexts/AuthContext";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 
 const Index = () => {
   const { user, loading } = useAuth();
   const [showTicketForm, setShowTicketForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Redirect to auth if not authenticated
   if (!loading && !user) {
     return <Navigate to="/auth" replace />;
   }
@@ -40,29 +40,45 @@ const Index = () => {
 
         <TicketStats />
 
-        <div className="flex flex-col lg:flex-row gap-6 mb-8">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                placeholder="Search tickets by ID, title, customer..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-white/60 backdrop-blur-sm border-white/20"
-              />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="lg:col-span-2">
+            <div className="flex flex-col lg:flex-row gap-6 mb-6">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder="Search tickets by ID, title, customer..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 bg-white/60 backdrop-blur-sm border-white/20"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex space-x-3">
+                <Link to="/analytics">
+                  <Button variant="outline" className="bg-white/60 backdrop-blur-sm border-white/20">
+                    <BarChart3 className="w-4 h-4 mr-2" />
+                    Analytics
+                  </Button>
+                </Link>
+                <Button 
+                  onClick={() => setShowTicketForm(true)}
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  New Ticket
+                </Button>
+              </div>
             </div>
-          </div>
-          
-          <Button 
-            onClick={() => setShowTicketForm(true)}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            New Ticket
-          </Button>
-        </div>
 
-        <TicketList searchTerm={searchTerm} />
+            <TicketList searchTerm={searchTerm} />
+          </div>
+
+          <div>
+            <NotificationCenter />
+          </div>
+        </div>
 
         {showTicketForm && (
           <TicketForm onClose={() => setShowTicketForm(false)} />
