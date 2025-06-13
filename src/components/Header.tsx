@@ -17,7 +17,7 @@ const Header = () => {
           <div className="flex items-center space-x-8">
             <Link to="/">
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                SupportDesk
+                TicketWhiz
               </h1>
             </Link>
             
