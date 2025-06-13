@@ -198,7 +198,6 @@ For support and questions:
 
 ## 🚀 Roadmap
 
-- [ ] Mobile application
 - [ ] Advanced analytics dashboard
 - [ ] AI-powered ticket categorization
 - [ ] Video call integration
